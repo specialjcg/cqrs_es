@@ -111,34 +111,62 @@ class TimelineMessage {
     constructor(content: string) {
         this._content = content;
     }
+
     content(): string {
         return this._content;
     }
 }
 
+
 interface IEventSubscriber<IDomainEvent> {
-    message: IDomainEvent;
-    Handle(evt: IDomainEvent): void
+    _setevent: IDomainEvent;
+    _called: boolean;
+
+    setevent(value: IDomainEvent): void;
+
+    setcalled(value: boolean): void;
+
+    called(): boolean;
+
+    getsetevent(): IDomainEvent;
+
+    Handle(evt: IDomainEvent): void;
 }
 
+class EventSubscriber<IDomainEvent> implements IEventSubscriber<IDomainEvent> {
 
-class EventSubscriber<T> implements IEventSubscriber<T> {
-    called: boolean;
+    setevent(value: IDomainEvent) {
+        this._setevent = value;
+    }
+
+    _setevent: IDomainEvent;
+
+    setcalled(value: boolean): void {
+        this._called = value;
+    }
+
+    called(): boolean {
+        return this._called;
+    }
+
+    getsetevent(): IDomainEvent {
+        return this._setevent;
+    }
+
+    _called: boolean;
 
 
+    constructor(evt: IDomainEvent) {
+        this.setevent(evt);
+        this.setcalled(false)
+    }
 
-    constructor(initialValue: T) {
-        this.message = initialValue;
-        this.called = false
+    Handle(evt: IDomainEvent)
+    { if (this.getsetevent() instanceof MessageQuacked) this.setcalled(true)
+
     }
 
 
-    message: T;
-
-    Handle(evt: T): void {
-this.called=true
-        this.message = evt
-    }
 }
 
 
@@ -150,10 +178,27 @@ class Timeline implements IEventSubscriber<MessageQuacked> {
     private _message: TimelineMessage[] = [];
 
     Handle(messageIdomain: MessageQuacked) {
+        this.message = messageIdomain
         this._message.push(new TimelineMessage(messageIdomain.content()));
     }
 
     message: MessageQuacked;
+    _called: boolean;
+    _setevent: MessageQuacked;
+
+    called(): boolean {
+        return false;
+    }
+
+    getsetevent(): MessageQuacked {
+        return undefined;
+    }
+
+    setcalled(value: boolean): void {
+    }
+
+    setevent(value: MessageQuacked): void {
+    }
 }
 
 interface IEventPublisher {
@@ -170,10 +215,11 @@ class EventBus implements IEventPublisher {
 
     }
 
-    publish<T>(evt: T) {
+    publish<IDomainEvent>(evt: IDomainEvent) {
         this.stream.Push(evt);
         for (const sub of this._subscribers) {
-            if (sub.message instanceof MessageQuacked) sub.Handle(evt);
+            sub.Handle(evt);
+
 
         }
 
@@ -190,12 +236,12 @@ class EventBus implements IEventPublisher {
 describe('test cqrs event sourcing', function () {
     let _stream: IEventsStream;
     let _eventBus: EventBus;
-beforeEach(()=>{
+    beforeEach(() => {
 
-    _stream = new MemoryEventsStream();
+        _stream = new MemoryEventsStream();
 
-    _eventBus = new EventBus(_stream);
-})
+        _eventBus = new EventBus(_stream);
+    })
     it('should raise message when event is published', () => {
 
         const message: Message = new Message(_stream);
@@ -242,30 +288,27 @@ beforeEach(()=>{
     //todo implement deleted message by id
 
 
-
     it('should store event whenpublish event', () => {
-        let eventBus = new EventBus(_stream);
-        eventBus.publish(new MessageQuacked("Hello"));
+        _eventBus.publish(new MessageQuacked("Hello"));
         expect(_stream.GetEvents()).toStrictEqual([new MessageQuacked("Hello")]);
 
     });
     it('should call each handler when publish event', () => {
-        let eventBus = new EventBus(new MemoryEventsStream());
         const subscribe1 = new EventSubscriber<MessageQuacked>(new MessageQuacked("Hello"));
-        eventBus.subscribe(subscribe1);
+        _eventBus.subscribe(subscribe1);
         const subscribe2 = new EventSubscriber<MessageQuacked>(new MessageQuacked("Hello"));
 
-        eventBus.subscribe(subscribe2)
+        _eventBus.subscribe(subscribe2)
         const subscribe3 = new EventSubscriber<MessageDeleted>(new MessageDeleted());
 
-        eventBus.subscribe(subscribe3)
+        _eventBus.subscribe(subscribe3)
 
 
-        eventBus.publish(new MessageQuacked("Hello"));
+        _eventBus.publish(new MessageQuacked("Hello"));
 
-        expect(subscribe1.called).toBe(true);
-        expect(subscribe2.called).toBe(true);
-        expect(subscribe3.called).toBe(false);
+        expect(subscribe1.called()).toBe(true);
+        expect(subscribe2.called()).toBe(true);
+        expect(subscribe3.called()).toBe(false);
 
     });
     it('should mixed display message in timeline when quack message ', () => {
