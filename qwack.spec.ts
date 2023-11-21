@@ -11,6 +11,10 @@ type MessageCouicFP = {
     type: 'MessageCouicedFP'
 }
 
+type TimelineMessage = { content: string;}
+
+const TimelineMessage = (content: string) => ({ content })
+
 const quack = (events: DomainEvent[]) => ( message: MessageQuackedFP):DomainEvent[] => [...events, message]
 
 const isAlreadyCouiced = (events: DomainEvent[]) => events.at(-1)?.type === 'MessageCouicedFP';
