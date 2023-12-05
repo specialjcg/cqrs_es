@@ -34,9 +34,14 @@ const isCouicedMessage = (event: DomainEvent): event is MessageCouicFP => event.
 const countQuacks = (events: DomainEvent[]) =>
         events.filter(isQuackedMessage).length - events.filter(isCouicedMessage).length;
 
-const timeline = (events: DomainEvent[]): TimelineMessage[] => {
-    return isAlreadyCouiced(events) ? [] : [TimelineMessage('Hello')];
-}
+const removePrevious = (timelineMessages: TimelineMessage[]): TimelineMessage[] => timelineMessages.slice(0, -1);
+
+const eventsToTimeline = (timelineMessages: TimelineMessage[], event: DomainEvent): TimelineMessage[] => [
+    ...(isCouicedMessage(event) ? removePrevious(timelineMessages) : timelineMessages),
+    ...(isQuackedMessage(event) ? [TimelineMessage(event.content)] : [])
+];
+
+const timeline = (events: DomainEvent[]): TimelineMessage[] => events.reduce(eventsToTimeline, [])
 
 describe('test cqrs event sourcing', function () {
     it('should raise message when event is published', () => {
@@ -92,7 +97,7 @@ describe('test cqrs event sourcing', function () {
         expect(timelineMessages).toStrictEqual([]);
     });
 
-    it('should timeline display something  when further message quacked and couiced', () => {
+    it('should timeline display something when further message quacked and couiced', () => {
         const events1: DomainEvent[] = quack([])(messageQuacked('Hello'))
         const events2: DomainEvent[] = quack(events1)(messageQuacked('World'))
         const events3: DomainEvent[] = couic(events2)(messageCouiced())

@@ -3,7 +3,7 @@
   "files": [],
   "compilerOptions": {
     "lib": ["es2022"],
-    "target": "es2022",
+    "target": "esnext",
     "allowJs": true,
     "module": "commonjs",
     "noImplicitAny": true,
