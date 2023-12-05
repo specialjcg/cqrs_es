@@ -288,7 +288,7 @@ describe('test cqrs event sourcing', function () {
     //todo implement deleted message by id
 
 
-    it('should store event whenpublish event', () => {
+    it('should store event when publish event', () => {
         _eventBus.publish(new MessageQuacked("Hello"));
         expect(_stream.GetEvents()).toStrictEqual([new MessageQuacked("Hello")]);
 

@@ -1,3 +1,5 @@
+import {describe, it, expect} from "vitest";
+
 type DomainEvent = {
     type: 'MessageQuackedFP' | 'MessageCouicedFP'
 }
