@@ -287,12 +287,11 @@ describe('test cqrs event sourcing', function () {
     });
     //todo implement deleted message by id
 
-
     it('should store event when publish event', () => {
         _eventBus.publish(new MessageQuacked("Hello"));
         expect(_stream.GetEvents()).toStrictEqual([new MessageQuacked("Hello")]);
-
     });
+
     it('should call each handler when publish event', () => {
         const subscribe1 = new EventSubscriber<MessageQuacked>(new MessageQuacked("Hello"));
         _eventBus.subscribe(subscribe1);
@@ -309,8 +308,8 @@ describe('test cqrs event sourcing', function () {
         expect(subscribe1.called()).toBe(true);
         expect(subscribe2.called()).toBe(true);
         expect(subscribe3.called()).toBe(false);
-
     });
+
     it('should mixed display message in timeline when quack message ', () => {
         let timeline = new Timeline();
         _eventBus.subscribe(timeline)

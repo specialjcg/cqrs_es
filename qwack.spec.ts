@@ -27,12 +27,12 @@ const messageQuacked = (content: string): MessageQuackedFP => ({content, type: "
 
 const messageCouiced = (): MessageCouicFP => ({type: "MessageCouicedFP"})
 
-const onlyQuackedMessages = (event: DomainEvent) => event.type === "MessageQuackedFP";
+const isQuackedMessage = (event: DomainEvent): event is MessageQuackedFP => event.type === "MessageQuackedFP";
 
-const onlyCouicedMessages = (event: DomainEvent) => event.type === "MessageCouicedFP";
+const isCouicedMessage = (event: DomainEvent): event is MessageCouicFP => event.type === "MessageCouicedFP";
 
 const countQuacks = (events: DomainEvent[]) =>
-        events.filter(onlyQuackedMessages).length - events.filter(onlyCouicedMessages).length;
+        events.filter(isQuackedMessage).length - events.filter(isCouicedMessage).length;
 
 const timeline = (events: DomainEvent[]): TimelineMessage[] => {
     return isAlreadyCouiced(events) ? [] : [TimelineMessage('Hello')];
@@ -102,4 +102,17 @@ describe('test cqrs event sourcing', function () {
 
         expect(timelineMessages).toStrictEqual([TimelineMessage("Hello"), TimelineMessage("There"), TimelineMessage("=> General Kenobi")]);
     });
+
+    it('should store event when publish event', () => {
+        const events: DomainEvent[] = quack([])(messageQuacked('Hello'))
+
+        const bus: Bus = Bus();
+
+        const subscriber = subscribe(bus)
+
+        publish(bus)(events)
+
+        expect(subscriber.history).toStrictEqual(messageQuacked('Hello'))
+    });
+
 });
