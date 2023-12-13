@@ -172,3 +172,31 @@ for (const event of immutableDomainEvents) {
 
 
 /// ---------------
+
+type Notifier = (event: DomainEvent) => number
+
+type Subscriber = {
+    events: DomainEvent[]
+}
+
+const Subscriber = (): Subscriber => ({
+    events: []
+})
+
+type Bus = {
+    notifiers: Notifier[]
+}
+
+const Bus = (): Bus => ({
+    notifiers: []
+})
+
+const publish = (bus: Bus) => (event: DomainEvent) => {
+    bus.notifiers.forEach((subscriber: Notifier): number => subscriber(event))
+}
+
+const notify = (sub: Subscriber) => (event: DomainEvent): number => sub.events.push(event)
+
+const subscribe = (bus: Bus) => (subscriber: Subscriber): void => {
+    bus.notifiers = [...bus.notifiers, notify(subscriber)]
+}

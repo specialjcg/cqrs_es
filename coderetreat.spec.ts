@@ -1,4 +1,7 @@
+import {describe, it, expect, beforeEach} from "vitest";
+
 interface IDomainEvent {
+
 }
 
 interface IEventsStream {
