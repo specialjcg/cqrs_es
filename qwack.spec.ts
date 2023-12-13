@@ -121,4 +121,54 @@ describe('test cqrs event sourcing', function () {
         ])
     });
 
+    it('should be impossible to mutate an history of domain events', () => {
+        const imutableDomainEvents = History<number>([1, 2, 3])
+
+        const tmp = imutableDomainEvents.reduce((acc: number, cur: number): number => { return acc + cur}, 0); // should not be possible
+
+        expect(tmp).toBe(6)
+    });
 });
+
+// type History<T> = Array<T>
+
+// const History = <T>(...history: T[]) => history
+
+
+// History type definition using a generator
+const History = <T>(history: T[]): {
+    reduce: {
+        <T>(callbackfn: <T>(previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T): T;
+        <T>(callbackfn: <T>(previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue: T): T;
+        <U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U
+    };
+    [Symbol.iterator]: () => IterableIterator<T>
+} => {
+    function* generator(): IterableIterator<T> {
+        for (const item of history) {
+            yield item;
+        }
+    }
+
+    return {
+        [Symbol.iterator]: generator,
+        // You can add more methods here if needed, ensuring they don't modify the original array
+
+        reduce: history.reduce
+    };
+}
+
+// Usage example
+const immutableDomainEvents = History<DomainEvent>([/* ... domain events ... */]);
+
+for (const event of immutableDomainEvents) {
+    console.log(event); // Iterates over the events without exposing the internal array
+}
+
+// immutableDomainEvents.sort(); // This should not be possible as sort method is not defined
+
+
+
+
+
+/// ---------------
