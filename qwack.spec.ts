@@ -109,15 +109,16 @@ describe('test cqrs event sourcing', function () {
     });
 
     it('should store event when publish event', () => {
-        const events: DomainEvent[] = quack([])(messageQuacked('Hello'))
+        const event: DomainEvent = messageQuacked('Hello')
+        const bus: Bus = Bus()
+        const subscriber: Subscriber = Subscriber();
 
-        const bus: Bus = Bus();
+        subscribe(bus)(subscriber)
+        publish(bus)(event)
 
-        const subscriber = subscribe(bus)
-
-        publish(bus)(events)
-
-        expect(subscriber.history).toStrictEqual(messageQuacked('Hello'))
+        expect(subscriber.events).toStrictEqual([
+            messageQuacked('Hello')
+        ])
     });
 
 });
